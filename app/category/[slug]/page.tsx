@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import SortProducts from "@/components/SortProducts";
+import CategorySkeleton from "@/components/CategorySkeleton";
 
 type Market = {
   market: string;
@@ -44,26 +46,37 @@ async function CategoryContent({ params }: CategoryPageProps) {
 
   console.log(products);
 
+  const categoryName = products[0]?.categoryNameBn;
+  const categoryIcon = products[0]?.categoryIcon;
+
   return (
     <main>
-      <p>Category: {slug}</p>
-      <p>Products found: {products.length}</p>
+      <div className="mb-6 flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6">
+        <span className="text-4xl">{categoryIcon}</span>
 
-      {products.map((product) => (
-        <div key={product.id}>
-          <p>{product.nameBn}</p>
-          <p>
-            {product.today} / {product.unit}
+        <div>
+          <h1 className="text-2xl font-bold">{categoryName}</h1>
+
+          <p className="text-sm text-gray-500">
+            {products.length} products available
           </p>
         </div>
-      ))}
+      </div>
+
+      <SortProducts products={products} />
     </main>
   );
 }
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   return (
-    <Suspense fallback={<main>Loading...</main>}>
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-6xl px-4 py-6">
+          <CategorySkeleton />
+        </main>
+      }
+    >
       <CategoryContent params={params} />
     </Suspense>
   );

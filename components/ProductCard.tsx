@@ -1,0 +1,54 @@
+type ProductCardProps = {
+  name: string;
+  image: string;
+  price: number;
+  unit: string;
+  change: {
+    dir: string;
+    pct: number;
+  };
+};
+
+export default function ProductCard({
+  name,
+  image,
+  price,
+  unit,
+  change,
+}: ProductCardProps) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 text-3xl">
+        {image}
+      </div>
+
+      <h2 className="text-lg font-semibold">{name}</h2>
+
+      <p className="text-sm text-gray-500">per {unit}</p>
+
+      <div className="mt-6">
+        <p className="text-sm text-gray-500">Today&apos;s price</p>
+
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-2xl font-bold">
+            {price} <span className="text-base font-normal">BDT</span>
+          </p>
+
+          <p
+            className={`rounded-full px-3 py-1 text-sm ${
+              change.dir === "up"
+                ? "bg-green-50 text-green-600"
+                : change.dir === "down"
+                  ? "bg-red-50 text-red-600"
+                  : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {change.dir === "up" && "▲"}
+            {change.dir === "down" && "▼"}
+            {change.dir === "flat" && "—"} {Math.abs(change.pct)}%
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
