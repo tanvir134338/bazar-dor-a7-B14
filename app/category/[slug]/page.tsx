@@ -49,6 +49,20 @@ async function CategoryContent({ params }: CategoryPageProps) {
   const categoryName = products[0]?.categoryNameBn;
   const categoryIcon = products[0]?.categoryIcon;
 
+  if (products.length === 0) {
+    return (
+      <main>
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
+          <h1 className="text-2xl font-bold">Category not found</h1>
+
+          <p className="mt-2 text-gray-500">
+            No products found for this category.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main>
       <div className="mb-6 flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6">
