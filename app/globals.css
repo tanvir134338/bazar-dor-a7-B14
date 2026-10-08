@@ -6,4 +6,15 @@
 
 body {
   margin: 0;
+  background-color: #f0f5f0;
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }

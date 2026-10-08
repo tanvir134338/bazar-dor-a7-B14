@@ -1,5 +1,7 @@
 import CategoryNav from "./CategoryNav";
 import Image from "next/image";
+import PriceTicker from "@/components/PriceTicker";
+
 const currentDate = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Dhaka",
   weekday: "long",
@@ -31,6 +33,7 @@ export default function Navbar() {
         </div>
       </div>
       <CategoryNav />
+      <PriceTicker />
     </header>
   );
 }
