@@ -39,7 +39,7 @@ async function CategoryContent({ params }: CategoryPageProps) {
   const { slug } = await params;
 
   const response = await fetch(
-    `https://api.abcz.workers.dev/api/bazardor/products?category=${slug}`,
+    `https://api.api-store.workers.dev/api/bazardor/products?category=${slug}`,
   );
 
   const products: Product[] = await response.json();

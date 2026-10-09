@@ -5,7 +5,7 @@ type Product = {
   image: string;
   unit: string;
   today: number;
-  change: {
+  change?: {
     dir: string;
     pct: number;
   };
@@ -15,7 +15,7 @@ const productNames: Record<string, string> = {
   "sorno-machi-chal": "Sorno Machi Rice",
   "mosur-dal": "Red Lentils",
   "mug-dal": "Mung Lentils",
-  chola: "Chickpeas",
+  "chola-dal": "Chickpeas",
 };
 
 function getEnglishName(slug: string) {
@@ -42,23 +42,40 @@ function getEnglishName(slug: string) {
   return translatedWords.join(" ");
 }
 
-async function getProducts() {
+async function getProducts(): Promise<Product[]> {
   "use cache";
 
   const response = await fetch(
-    "https://api.abcz.workers.dev/api/bazardor/products",
+    "https://api.api-store.workers.dev/api/bazardor/products",
   );
 
-  const products: Product[] = await response.json();
+  if (!response.ok) {
+    throw new Error(`Products API failed: ${response.status}`);
+  }
 
-  return products;
+  const data: unknown = await response.json();
+
+  if (Array.isArray(data)) {
+    return data as Product[];
+  }
+
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "products" in data &&
+    Array.isArray(data.products)
+  ) {
+    return data.products as Product[];
+  }
+
+  throw new Error("Products API response does not contain a products array.");
 }
 
 export default async function PriceTicker() {
   const products = await getProducts();
 
   return (
-    <div className="overflow-hidden border-y border-gray-200 bg-gray-50">
+    <div className="w-full overflow-hidden border-y border-gray-200 bg-gray-50">
       <div
         className="flex w-max"
         style={{
@@ -68,39 +85,43 @@ export default async function PriceTicker() {
         {[0, 1].map((group) => (
           <div
             key={group}
-            className="flex shrink-0 items-center gap-8 whitespace-nowrap px-4 py-3"
+            className="flex shrink-0 items-center gap-5 whitespace-nowrap px-3 py-2.5 sm:gap-8 sm:px-4 sm:py-3"
           >
-            {products.map((product) => (
-              <div
-                key={`${group}-${product.id}`}
-                className="flex shrink-0 items-center gap-2 text-sm"
-              >
-                <span>{product.image}</span>
+            {products.map((product) => {
+              const direction = product.change?.dir ?? "flat";
+              const percentage = Math.abs(product.change?.pct ?? 0);
 
-                <span className="font-medium">
-                  {getEnglishName(product.slug)}
-                </span>
-
-                <span className="text-gray-600">
-                  {product.today} BDT / {product.unit}
-                </span>
-
-                <span
-                  className={
-                    product.change.dir === "up"
-                      ? "text-red-600"
-                      : product.change.dir === "down"
-                        ? "text-green-600"
-                        : "text-gray-500"
-                  }
+              return (
+                <div
+                  key={`${group}-${product.id}`}
+                  className="flex shrink-0 items-center gap-1.5 text-xs sm:gap-2 sm:text-sm"
                 >
-                  {product.change.dir === "up" && "▲"}
-                  {product.change.dir === "down" && "▼"}
-                  {product.change.dir === "flat" && "—"}{" "}
-                  {Math.abs(product.change.pct)}%
-                </span>
-              </div>
-            ))}
+                  <span>{product.image}</span>
+
+                  <span className="font-medium">
+                    {getEnglishName(product.slug)}
+                  </span>
+
+                  <span className="text-gray-600">
+                    {product.today} BDT / {product.unit}
+                  </span>
+
+                  <span
+                    className={
+                      direction === "up"
+                        ? "text-red-600"
+                        : direction === "down"
+                          ? "text-green-600"
+                          : "text-gray-500"
+                    }
+                  >
+                    {direction === "up" && "▲"}
+                    {direction === "down" && "▼"}
+                    {direction === "flat" && "—"} {percentage}%
+                  </span>
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>

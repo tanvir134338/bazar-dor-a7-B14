@@ -17,7 +17,7 @@ async function getProducts() {
   "use cache";
 
   const response = await fetch(
-    "https://api.abcz.workers.dev/api/bazardor/products",
+    "https://api.api-store.workers.dev/api/bazardor/products",
   );
 
   const products: Product[] = await response.json();

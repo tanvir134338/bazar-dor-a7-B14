@@ -53,7 +53,11 @@ export default function AuthStatus() {
           {session.user.name?.charAt(0).toUpperCase() || "U"}
         </div>
 
-        <span>{session.user.name || "User"}</span>
+        <span className="hidden sm:inline">{session.user.name || "User"}</span>
+
+        <span className="sm:hidden">
+          {session.user.name?.split(" ")[0] || "User"}
+        </span>
 
         <IoIosArrowDropdownCircle className="text-lg text-gray-500" />
       </button>
