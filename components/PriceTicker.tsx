@@ -1,5 +1,6 @@
 type Product = {
   id: number;
+  slug: string;
   nameBn: string;
   image: string;
   unit: string;
@@ -9,6 +10,37 @@ type Product = {
     pct: number;
   };
 };
+
+const productNames: Record<string, string> = {
+  "sorno-machi-chal": "Sorno Machi Rice",
+  "mosur-dal": "Red Lentils",
+  "mug-dal": "Mung Lentils",
+  chola: "Chickpeas",
+};
+
+function getEnglishName(slug: string) {
+  if (productNames[slug]) {
+    return productNames[slug];
+  }
+
+  const words = slug.split("-");
+
+  const translatedWords = words.map((word) => {
+    if (word === "chal") return "Rice";
+    if (word === "dal") return "Lentils";
+    if (word === "tel") return "Oil";
+    if (word === "sobji") return "Vegetables";
+    if (word === "mach") return "Fish";
+    if (word === "mangsho") return "Meat";
+    if (word === "dim") return "Eggs";
+    if (word === "dudh") return "Milk";
+    if (word === "mosla") return "Spices";
+
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  });
+
+  return translatedWords.join(" ");
+}
 
 async function getProducts() {
   "use cache";
@@ -45,7 +77,9 @@ export default async function PriceTicker() {
               >
                 <span>{product.image}</span>
 
-                <span className="font-medium">{product.nameBn}</span>
+                <span className="font-medium">
+                  {getEnglishName(product.slug)}
+                </span>
 
                 <span className="text-gray-600">
                   {product.today} BDT / {product.unit}

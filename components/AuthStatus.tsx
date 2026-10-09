@@ -80,7 +80,7 @@ export default function AuthStatus() {
           <button
             type="button"
             onClick={handleSignOut}
-            className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+            className="mt-1 flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-red-600 hover:bg-red-50"
           >
             <FaSignOutAlt />
             Sign Out

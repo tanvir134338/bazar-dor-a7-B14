@@ -2,6 +2,7 @@ import ProductCard from "@/components/ProductCard";
 
 type Product = {
   id: number;
+  slug: string;
   nameBn: string;
   image: string;
   unit: string;
@@ -42,7 +43,7 @@ export default async function RisersSection() {
         {risers.map((product) => (
           <ProductCard
             key={product.id}
-            name={product.nameBn}
+            slug={product.slug}
             image={product.image}
             price={product.today}
             unit={product.unit}

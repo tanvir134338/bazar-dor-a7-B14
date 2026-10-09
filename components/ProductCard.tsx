@@ -1,5 +1,5 @@
 type ProductCardProps = {
-  name: string;
+  slug: string;
   image: string;
   price: number;
   unit: string;
@@ -9,8 +9,36 @@ type ProductCardProps = {
   };
 };
 
+const productNames: Record<string, string> = {
+  "sorno-machi-chal": "Sorno Machi Rice",
+  "miniket-chal": "Miniket Rice",
+  "nazir-chal": "Nazir Rice",
+  "batam-size-chal": "Batam Size Rice",
+  "mosur-dal": "Red Lentils",
+  "mug-dal": "Mung Lentils",
+  "chola-dal": "Chickpeas",
+  "aman-dal-khosasila": "Aman Dal",
+  "sorishar-tel": "Mustard Oil",
+  "pam-tel": "Palm Oil",
+  "ghani-banga-sorishar-tel": "Cold-Pressed Mustard Oil",
+  alu: "Potato",
+  peyaj: "Onion",
+  "kaccha-moric": "Green Chili",
+  begun: "Eggplant",
+  dhenders: "Okra",
+  "rui-mach": "Rohu Fish",
+  "telapiya-mach": "Tilapia Fish",
+  "ilish-mach": "Hilsa Fish",
+  "katla-mach": "Katla Fish",
+  "chingri-mach": "Shrimp",
+};
+
+function getEnglishName(slug: string) {
+  return productNames[slug] || slug;
+}
+
 export default function ProductCard({
-  name,
+  slug,
   image,
   price,
   unit,
@@ -22,7 +50,7 @@ export default function ProductCard({
         {image}
       </div>
 
-      <h2 className="text-lg font-semibold">{name}</h2>
+      <h2 className="text-lg font-semibold">{getEnglishName(slug)}</h2>
 
       <p className="text-sm text-gray-500">per {unit}</p>
 
