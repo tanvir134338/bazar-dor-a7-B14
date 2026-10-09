@@ -1,4 +1,5 @@
 import CategoryNav from "./CategoryNav";
+import AuthStatus from "./AuthStatus";
 import Image from "next/image";
 import Link from "next/link";
 import PriceTicker from "@/components/PriceTicker";
@@ -32,18 +33,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <Link href="/signin" className="font-medium text-gray-700">
-            Sign In
-          </Link>
-
-          <Link
-            href="/signup"
-            className="rounded-lg bg-green-600 px-5 py-2 font-medium text-white"
-          >
-            Sign Up
-          </Link>
-        </div>
+        <AuthStatus />
       </div>
 
       <CategoryNav />
