@@ -4,18 +4,11 @@ import AuthStatus from "./AuthStatus";
 import Image from "next/image";
 import Link from "next/link";
 import PriceTicker from "@/components/PriceTicker";
-
-const currentDate = new Intl.DateTimeFormat("en-US", {
-  timeZone: "Asia/Dhaka",
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-}).format(new Date());
+import CurrentDate from "@/components/CurrentDate";
 
 export default async function Navbar() {
   const categories = await getCategories();
-  console.log("Categories received:", categories);
+
   const mobileCategories = categories.map((category) => ({
     id: category.id,
     slug: category.slug,
@@ -48,18 +41,8 @@ export default async function Navbar() {
             <h1 className="whitespace-nowrap text-base font-bold text-black sm:text-2xl">
               Bazar Dor
             </h1>
-            <p className="text-[10px] text-gray-500 sm:text-sm">
-              <span className="sm:hidden">
-                {new Intl.DateTimeFormat("en-US", {
-                  timeZone: "Asia/Dhaka",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                }).format(new Date())}
-              </span>
 
-              <span className="hidden sm:inline">{currentDate}</span>
-            </p>
+            <CurrentDate />
           </div>
         </Link>
 

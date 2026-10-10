@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 
@@ -16,74 +17,27 @@ function ProfileContent({
 }) {
   const router = useRouter();
 
-  const [name, setName] = useState(user.name || "");
-  const [loading, setLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  const originalName = user.name || "";
-  const hasChanged = name.trim() !== originalName;
-
-  async function handleUpdate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const trimmedName = name.trim();
-
-    if (!trimmedName) {
-      setError("Name cannot be empty.");
-      setMessage("");
-      return;
-    }
-
-    if (trimmedName.length < 2) {
-      setError("Name must contain at least 2 characters.");
-      setMessage("");
-      return;
-    }
-
-    if (!hasChanged) {
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setMessage("");
-
-    const { error } = await authClient.updateUser({
-      name: trimmedName,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || "Failed to update your profile.");
-      return;
-    }
-
-    setMessage("Profile updated successfully.");
-
-    router.refresh();
-
-    setTimeout(() => {
-      setMessage("");
-    }, 3000);
-  }
 
   async function handleSignOut() {
     setSigningOut(true);
     setError("");
-    setMessage("");
 
-    const { error } = await authClient.signOut();
+    try {
+      const { error } = await authClient.signOut();
 
-    if (error) {
+      if (error) {
+        setError(error.message || "Failed to sign out.");
+        setSigningOut(false);
+        return;
+      }
+
+      router.replace("/signin");
+    } catch {
+      setError("Something went wrong. Please try again.");
       setSigningOut(false);
-      setError(error.message || "Failed to sign out.");
-      return;
     }
-
-    window.location.reload();
   }
 
   const firstLetter = user.name?.charAt(0).toUpperCase() || "U";
@@ -99,13 +53,6 @@ function ProfileContent({
             View and update your profile information.
           </p>
         </div>
-
-        {/* Success message */}
-        {message && (
-          <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-            {message}
-          </div>
-        )}
 
         {/* Error message */}
         {error && (
@@ -157,40 +104,18 @@ function ProfileContent({
 
         {/* Information */}
         <section className="rounded-2xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">
-            Information
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Information</h2>
 
-          <form onSubmit={handleUpdate}>
-            <label
-              htmlFor="name"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Name
-            </label>
+          <p className="mt-2 text-sm text-gray-500">
+            Manage your account information on the update page.
+          </p>
 
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(event) => {
-                setName(event.target.value);
-                setError("");
-                setMessage("");
-              }}
-              disabled={loading}
-              placeholder="Enter your name"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-gray-50"
-            />
-
-            <button
-              type="submit"
-              disabled={!hasChanged || loading}
-              className="mt-4 w-full cursor-pointer rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              {loading ? "Updating..." : "Update"}
-            </button>
-          </form>
+          <Link
+            href="/profile/update"
+            className="mt-5 block w-full rounded-lg bg-green-600 px-4 py-3 text-center font-medium text-white transition hover:bg-green-700"
+          >
+            Update
+          </Link>
         </section>
       </div>
     </main>

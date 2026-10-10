@@ -40,7 +40,14 @@ export default function Hero() {
               meat, eggs and other essential products.
             </p>
 
-            <button className="mt-6 rounded-lg bg-green-600 px-5 py-3 font-medium text-white">
+            <button
+              onClick={() =>
+                document.getElementById("all-products")?.scrollIntoView({
+                  behavior: "smooth",
+                })
+              }
+              className="mt-6 rounded-lg bg-green-600 px-5 py-3 font-medium text-white"
+            >
               View All Products
             </button>
           </div>
