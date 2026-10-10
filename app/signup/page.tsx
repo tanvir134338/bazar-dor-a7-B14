@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -14,37 +15,86 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setError("");
 
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+      const message = "Please fill in all fields.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (password.length < 8) {
+      const message = "Password must contain at least 8 characters.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      const message = "Passwords do not match.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
     setLoading(true);
 
-    const { error } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-    });
+    try {
+      const { error } = await authClient.signUp.email({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
-    setLoading(false);
+      if (error) {
+        const message = error.message || "Unable to create your account.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
 
-    if (error) {
-      setError(error.message || "Unable to create your account.");
-      return;
+      toast.success("Account created successfully!");
+
+      router.push("/signin");
+    } catch {
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    router.push("/");
-    router.refresh();
+  async function handleSocialSignUp(provider: "google" | "github") {
+    setError("");
+    setSocialLoading(provider);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider,
+        callbackURL: "/",
+      });
+
+      if (error) {
+        const message = error.message || `Unable to continue with ${provider}.`;
+
+        setError(message);
+        toast.error(message);
+        setSocialLoading("");
+      }
+    } catch {
+      const message = `Unable to continue with ${provider}. Please try again.`;
+      setError(message);
+      toast.error(message);
+      setSocialLoading("");
+    }
   }
 
   return (
@@ -75,8 +125,10 @@ export default function SignUpPage() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Enter your name"
+              autoComplete="name"
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
@@ -94,8 +146,10 @@ export default function SignUpPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
+              autoComplete="email"
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
@@ -112,10 +166,12 @@ export default function SignUpPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Create a password with at least 8 characters"
-              required
+              placeholder="At least 8 characters"
+              autoComplete="new-password"
               minLength={8}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              required
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
@@ -133,22 +189,27 @@ export default function SignUpPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Enter your password again"
-              required
+              autoComplete="new-password"
               minLength={8}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              required
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <p
+              role="alert"
+              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+            >
               {error}
             </p>
           )}
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={loading || !!socialLoading}
+            className="w-full cursor-pointer rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>
@@ -156,27 +217,33 @@ export default function SignUpPage() {
 
         <div className="my-4 flex items-center gap-3">
           <div className="h-px flex-1 bg-gray-200" />
-
           <span className="text-xs text-gray-400">OR</span>
-
           <div className="h-px flex-1 bg-gray-200" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             type="button"
-            className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            onClick={() => handleSocialSignUp("google")}
+            disabled={loading || !!socialLoading}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FcGoogle className="text-lg" />
-            Continue with Google
+            {socialLoading === "google"
+              ? "Connecting..."
+              : "Continue with Google"}
           </button>
 
           <button
             type="button"
-            className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            onClick={() => handleSocialSignUp("github")}
+            disabled={loading || !!socialLoading}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FaGithub className="text-lg" />
-            Continue with GitHub
+            {socialLoading === "github"
+              ? "Connecting..."
+              : "Continue with GitHub"}
           </button>
         </div>
 

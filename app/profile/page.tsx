@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 function ProfileContent({
   user,
@@ -16,7 +17,6 @@ function ProfileContent({
   };
 }) {
   const router = useRouter();
-
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,14 +28,20 @@ function ProfileContent({
       const { error } = await authClient.signOut();
 
       if (error) {
-        setError(error.message || "Failed to sign out.");
-        setSigningOut(false);
+        const message = error.message || "Failed to sign out.";
+        setError(message);
+        toast.error(message);
         return;
       }
 
+      toast.success("Signed out successfully!");
       router.replace("/signin");
+      router.refresh();
     } catch {
-      setError("Something went wrong. Please try again.");
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
+    } finally {
       setSigningOut(false);
     }
   }
@@ -45,7 +51,6 @@ function ProfileContent({
   return (
     <main className="flex-1 px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        {/* Page heading */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
 
@@ -54,18 +59,18 @@ function ProfileContent({
           </p>
         </div>
 
-        {/* Error message */}
         {error && (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          <div
+            role="alert"
+            className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+          >
             {error}
           </div>
         )}
 
-        {/* Profile summary */}
         <section className="mb-5 rounded-2xl border border-gray-200 bg-white p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              {/* Avatar */}
               {user.image ? (
                 <Image
                   src={user.image}
@@ -80,7 +85,6 @@ function ProfileContent({
                 </div>
               )}
 
-              {/* User information */}
               <div className="min-w-0">
                 <h2 className="truncate text-lg font-semibold text-gray-900">
                   {user.name || "User"}
@@ -90,7 +94,6 @@ function ProfileContent({
               </div>
             </div>
 
-            {/* Sign Out */}
             <button
               type="button"
               onClick={handleSignOut}
@@ -102,7 +105,6 @@ function ProfileContent({
           </div>
         </section>
 
-        {/* Information */}
         <section className="rounded-2xl border border-gray-200 bg-white p-5">
           <h2 className="text-lg font-semibold text-gray-900">Information</h2>
 
@@ -124,11 +126,11 @@ function ProfileContent({
 
 export default function ProfilePage() {
   const router = useRouter();
-
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     if (!isPending && !session) {
+      toast.error("Please sign in to access your profile.");
       router.replace("/signin");
     }
   }, [isPending, session, router]);

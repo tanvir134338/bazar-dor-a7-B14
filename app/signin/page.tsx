@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -12,46 +13,87 @@ export default function SignInPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState("");
+
+  // Notify users when they need to sign in to view product details.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("redirected") === "product") {
+      toast("Sign in to view product details.", {
+        icon: "🔒",
+      });
+
+      window.history.replaceState({}, "", "/signin");
+    }
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
-    setLoading(true);
 
-    const { error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || "Invalid email or password.");
+    if (!email.trim() || !password) {
+      const message = "Please enter your email and password.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setLoading(true);
+
+    try {
+      const { error } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        const message = error.message || "Invalid email or password.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      toast.success("Signed in successfully!");
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleGoogleSignIn() {
+  async function handleSocialSignIn(provider: "google" | "github") {
     setError("");
+    setSocialLoading(provider);
 
-    await authClient.signIn.social({
-      provider: "google",
-    });
-  }
+    try {
+      const { error } = await authClient.signIn.social({
+        provider,
+        callbackURL: "/",
+      });
 
-  async function handleGitHubSignIn() {
-    setError("");
+      if (error) {
+        const message = error.message || `Unable to sign in with ${provider}.`;
 
-    await authClient.signIn.social({
-      provider: "github",
-    });
+        setError(message);
+        toast.error(message);
+        setSocialLoading("");
+      }
+    } catch {
+      const message = `Unable to sign in with ${provider}. Please try again.`;
+
+      setError(message);
+      toast.error(message);
+      setSocialLoading("");
+    }
   }
 
   return (
@@ -80,8 +122,10 @@ export default function SignInPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
+              autoComplete="email"
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
@@ -99,20 +143,25 @@ export default function SignInPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
+              autoComplete="current-password"
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600"
+              disabled={loading}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 disabled:opacity-60"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <p
+              role="alert"
+              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+            >
               {error}
             </p>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!socialLoading}
             className="w-full cursor-pointer rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Signing In..." : "Sign In"}
@@ -121,29 +170,33 @@ export default function SignInPage() {
 
         <div className="my-4 flex items-center gap-3">
           <div className="h-px flex-1 bg-gray-200" />
-
           <span className="text-xs text-gray-400">OR</span>
-
           <div className="h-px flex-1 bg-gray-200" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             type="button"
-            onClick={handleGoogleSignIn}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            onClick={() => handleSocialSignIn("google")}
+            disabled={loading || !!socialLoading}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FcGoogle className="text-lg" />
-            Continue with Google
+            {socialLoading === "google"
+              ? "Connecting..."
+              : "Continue with Google"}
           </button>
 
           <button
             type="button"
-            onClick={handleGitHubSignIn}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            onClick={() => handleSocialSignIn("github")}
+            disabled={loading || !!socialLoading}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FaGithub className="text-lg" />
-            Continue with GitHub
+            {socialLoading === "github"
+              ? "Connecting..."
+              : "Continue with GitHub"}
           </button>
         </div>
 

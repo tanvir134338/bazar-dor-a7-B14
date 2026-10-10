@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
 function UpdateProfileForm({ initialName }: { initialName: string }) {
@@ -27,25 +28,32 @@ function UpdateProfileForm({ initialName }: { initialName: string }) {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      setError("Name cannot be empty.");
+      const errorMessage = "Name cannot be empty.";
+      setError(errorMessage);
       setMessage("");
+      toast.error(errorMessage);
       return;
     }
 
     if (trimmedName.length < 2) {
-      setError("Name must contain at least 2 characters.");
+      const errorMessage = "Name must contain at least 2 characters.";
+      setError(errorMessage);
       setMessage("");
+      toast.error(errorMessage);
       return;
     }
 
     if (trimmedName === initialName) {
-      setError("Please enter a different name.");
+      const errorMessage = "Please enter a different name.";
+      setError(errorMessage);
       setMessage("");
+      toast.error(errorMessage);
       return;
     }
 
     if (messageTimer.current) {
       clearTimeout(messageTimer.current);
+      messageTimer.current = null;
     }
 
     setLoading(true);
@@ -58,18 +66,27 @@ function UpdateProfileForm({ initialName }: { initialName: string }) {
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to update your profile.");
+        const errorMessage =
+          result.error.message || "Failed to update your profile.";
+
+        setError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
 
-      setMessage("Profile updated successfully.");
+      const successMessage = "Profile updated successfully.";
+
+      setMessage(successMessage);
+      toast.success(successMessage);
 
       messageTimer.current = setTimeout(() => {
         setMessage("");
         messageTimer.current = null;
       }, 3000);
     } catch {
-      setError("Something went wrong. Please try again.");
+      const errorMessage = "Something went wrong. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -134,6 +151,7 @@ function UpdateProfileForm({ initialName }: { initialName: string }) {
               }}
               disabled={loading}
               placeholder="Enter your name"
+              autoComplete="name"
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100 disabled:bg-gray-50"
             />
 
@@ -157,6 +175,7 @@ export default function UpdateProfilePage() {
 
   useEffect(() => {
     if (!isPending && !session) {
+      toast.error("Please sign in to update your profile.");
       router.replace("/signin");
     }
   }, [isPending, session, router]);

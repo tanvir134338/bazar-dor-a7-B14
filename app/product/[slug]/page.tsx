@@ -119,9 +119,9 @@ async function ProductContent({ params }: ProductPageProps) {
     headers: await headers(),
   });
 
-  // Users must sign in before viewing product details.
+  // Redirect unauthenticated users to sign in with a redirect reason.
   if (!session) {
-    redirect("/signin");
+    redirect("/signin?redirected=product");
   }
 
   let products: Product[];
