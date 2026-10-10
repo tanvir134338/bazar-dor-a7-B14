@@ -1,5 +1,7 @@
 # 🛒 Bazar Dor — বাজার দর
 
+🌐 Live Website: https://bazar-dor-a7-b14.vercel.app/
+
 ### 🇧🇩 Your Daily Essential Price Tracker
 
 **Bazar Dor** is a responsive web application designed to help people explore daily essential product prices across Bangladesh. Compare price changes, discover market-wise prices, and stay informed about everyday necessities—all in one place.
